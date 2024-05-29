@@ -30,9 +30,11 @@ fn app() -> Html {
     html! {
     <>
         <h1>{ "Knock-Knock" }</h1>
-        <div>
-            <Cookie cookie={cookie.cookie.clone()} />
-        </div>
+        if false {
+            <div>
+                <Cookie cookie={cookie.cookie.clone()} />
+            </div>
+        }
         if let Ok(ref joke) = *joke {
             <Joke joke={joke.clone()}/>
         }
