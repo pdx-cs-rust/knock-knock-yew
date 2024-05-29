@@ -3,11 +3,10 @@ use gloo_console::log;
 extern crate wasm_bindgen_futures;
 extern crate wasm_cookies;
 use yew::prelude::*;
-use std::sync::Arc;
 
 #[derive(Properties, Clone, PartialEq)]
 struct CookieProps {
-    cookie: Arc<String>,
+    cookie: String,
 }
 
 impl CookieProps {
@@ -17,7 +16,7 @@ impl CookieProps {
         match wasm_cookies::get("test") {
             Some(Ok(cookie)) => {
                 log!("got cookie");
-                return Self { cookie: Arc::new(cookie) };
+                return Self { cookie: cookie };
             }
             Some(Err(e)) => {
                 log!(format!("cookie error: {}", e));
@@ -28,7 +27,7 @@ impl CookieProps {
         }
         log!("setting cookie");
         wasm_cookies::set("test", "123", &cookie_options);
-        let cookie = Arc::new("123".to_string());
+        let cookie = "123".to_string();
         // XXX Don't do this!! No secrets in logs!
         // log!(&cookie);
         Self { cookie }
