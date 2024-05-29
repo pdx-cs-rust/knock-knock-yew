@@ -14,16 +14,24 @@ impl CookieProps {
     fn setup_cookie() -> Self {
         let cookie_options = wasm_cookies::CookieOptions::default()
             .expires_after(core::time::Duration::from_secs(52 * 7 * 24 * 60 * 60));
-        let cookie = wasm_cookies::get("test");
-        let cookie = if let Some(cookie) = cookie {
-            cookie.unwrap()
-        } else {
-            log!("setting cookie");
-            wasm_cookies::set("test", "123", &cookie_options);
-            "123".to_string()
-        };
-        log!(&cookie);
-        Self { cookie: Arc::new(cookie) }
+        match wasm_cookies::get("test") {
+            Some(Ok(cookie)) => {
+                log!("got cookie");
+                return Self { cookie: Arc::new(cookie) };
+            }
+            Some(Err(e)) => {
+                log!(format!("cookie error: {}", e));
+            }
+            None => {
+                log!("did not find cookie");
+            }
+        }
+        log!("setting cookie");
+        wasm_cookies::set("test", "123", &cookie_options);
+        let cookie = Arc::new("123".to_string());
+        // XXX Don't do this!! No secrets in logs!
+        // log!(&cookie);
+        Self { cookie }
     }
 }    
 
