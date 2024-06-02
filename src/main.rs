@@ -40,7 +40,7 @@ fn app() -> Html {
         }
         if let Err(ref error) = *joke {
             <div>
-                <p>{error.to_string().clone()}</p>
+                <span class="error">{format!("Server Error: {error}")}</span>
             </div>
         }
     </>
