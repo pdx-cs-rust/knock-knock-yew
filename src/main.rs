@@ -9,7 +9,6 @@ use joke::*;
 use std::collections::HashSet;
 
 extern crate serde;
-// use gloo_console::log;
 use gloo_net::http;
 extern crate wasm_bindgen_futures;
 use wasm_cookies as cookies;
@@ -53,7 +52,6 @@ impl Component for App {
                 true
             }
             Msg::GetJoke(key) => {
-                // log!(format!("GetJoke: {:?}", key));
                 App::refresh_joke(ctx, key);
                 false
             }
