@@ -1,16 +1,19 @@
 mod cookie;
+mod finder;
 mod joke;
 
 use cookie::*;
+use finder::*;
 use joke::*;
 
 use std::collections::HashSet;
 
 extern crate serde;
-use gloo_console::log;
+// use gloo_console::log;
 use gloo_net::http;
 extern crate wasm_bindgen_futures;
 use wasm_cookies as cookies;
+use web_sys::HtmlTextAreaElement;
 use yew::prelude::*;
 
 pub type JokeResult = Result<JokeStruct, gloo_net::Error>;
@@ -45,10 +48,16 @@ impl Component for App {
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::GotJoke(joke) => self.joke = joke,
-            Msg::GetJoke(key) => App::refresh_joke(ctx, key),
+            Msg::GotJoke(joke) => {
+                self.joke = joke;
+                true
+            }
+            Msg::GetJoke(key) => {
+                // log!(format!("GetJoke: {:?}", key));
+                App::refresh_joke(ctx, key);
+                false
+            }
         }
-        true
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
@@ -71,6 +80,7 @@ impl Component for App {
             <div>
                 <button onclick={ctx.link().callback(|_| Msg::GetJoke(None))}>{"Tell me another!"}</button>
             </div>
+            <Finder on_find={ctx.link().callback(Msg::GetJoke)}/>
         </>
         }
     }

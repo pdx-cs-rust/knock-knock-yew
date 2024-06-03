@@ -13,14 +13,9 @@ impl JokeStruct {
     pub async fn get_joke(key: Option<String>) -> Msg {
         let request = match &key {
             None => "http://localhost:3000/api/v1/joke".to_string(),
-            Some(ref key) => format!(
-                "http://localhost:3000/api/v1/joke?id={}",
-                key,
-            ),
+            Some(ref key) => format!("http://localhost:3000/api/v1/joke/{}", key,),
         };
-        let response = http::Request::get(&request)
-            .send()
-            .await;
+        let response = http::Request::get(&request).send().await;
         match response {
             Err(e) => Msg::GotJoke(Err(e)),
             Ok(data) => Msg::GotJoke(data.json().await),
