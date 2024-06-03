@@ -22,6 +22,14 @@ struct App {
 
 pub enum Msg {
     GotJoke(JokeResult),
+    GetJoke(Option<String>),
+}
+
+impl App {
+    fn refresh_joke(ctx: &Context<Self>, key: Option<String>) {
+        let got_joke = JokeStruct::get_joke(key);
+        ctx.link().send_future(got_joke);
+    }
 }
 
 impl Component for App {
@@ -30,20 +38,20 @@ impl Component for App {
 
     fn create(ctx: &Context<Self>) -> Self {
         let cookie = acquire_cookie();
-        let got_joke = JokeStruct::get_joke();
-        ctx.link().send_future(got_joke);
+        App::refresh_joke(ctx, None);
         let joke = Err(gloo_net::Error::GlooError("Loading Joke…".to_string()));
         Self { cookie, joke }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::GotJoke(joke) => self.joke = joke,
+            Msg::GetJoke(key) => App::refresh_joke(ctx, key),
         }
         true
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let cookie = &self.cookie;
         let joke = &self.joke;
         html! {
@@ -60,6 +68,9 @@ impl Component for App {
                     <span class="error">{format!("Server Error: {error}")}</span>
                 </div>
             }
+            <div>
+                <button onclick={ctx.link().callback(|_| Msg::GetJoke(None))}>{"Tell me another!"}</button>
+            </div>
         </>
         }
     }

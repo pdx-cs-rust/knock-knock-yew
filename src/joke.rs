@@ -10,8 +10,15 @@ pub struct JokeStruct {
 }
 
 impl JokeStruct {
-    pub async fn get_joke() -> Msg {
-        let response = http::Request::get("http://localhost:3000/api/v1/joke")
+    pub async fn get_joke(key: Option<String>) -> Msg {
+        let request = match &key {
+            None => "http://localhost:3000/api/v1/joke".to_string(),
+            Some(ref key) => format!(
+                "http://localhost:3000/api/v1/joke?id={}",
+                key,
+            ),
+        };
+        let response = http::Request::get(&request)
             .send()
             .await;
         match response {
