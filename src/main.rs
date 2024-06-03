@@ -13,37 +13,55 @@ extern crate wasm_bindgen_futures;
 use wasm_cookies as cookies;
 use yew::prelude::*;
 
-#[function_component(App)]
-fn app() -> Html {
-    let cookie = use_state(|| CookieProps::acquire_cookie());
+pub type JokeResult = Result<JokeStruct, gloo_net::Error>;
 
-    let joke = use_state(|| Err(gloo_net::Error::GlooError("uninit".to_string())));
-    let get_joke = joke.clone();
-    use_effect_with((), move |()| {
-        wasm_bindgen_futures::spawn_local(async move {
-            let joke = JokeStruct::get_joke().await;
-            get_joke.set(joke);
-        });
-        || ()
-    });
+struct App {
+    cookie: String,
+    joke: JokeResult,
+}
 
-    html! {
-    <>
-        <h1>{ "Knock-Knock" }</h1>
-        if false {
-            <div>
-                <Cookie cookie={cookie.cookie.clone()} />
-            </div>
+pub enum Msg {
+    GotJoke(JokeResult),
+}
+
+impl Component for App {
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(ctx: &Context<Self>) -> Self {
+        let cookie = acquire_cookie();
+        let got_joke = JokeStruct::get_joke();
+        ctx.link().send_future(got_joke);
+        let joke = Err(gloo_net::Error::GlooError("Loading Joke…".to_string()));
+        Self { cookie, joke }
+    }
+
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            Msg::GotJoke(joke) => self.joke = joke,
         }
-        if let Ok(ref joke) = *joke {
-            <Joke joke={joke.clone()}/>
+        true
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
+        let cookie = &self.cookie;
+        let joke = &self.joke;
+        html! {
+        <>
+            <h1>{ "Knock-Knock" }</h1>
+            if false {
+                {render_cookie(cookie)}
+            }
+            if let Ok(ref joke) = joke {
+                <Joke joke={joke.clone()}/>
+            }
+            if let Err(ref error) = joke {
+                <div>
+                    <span class="error">{format!("Server Error: {error}")}</span>
+                </div>
+            }
+        </>
         }
-        if let Err(ref error) = *joke {
-            <div>
-                <span class="error">{format!("Server Error: {error}")}</span>
-            </div>
-        }
-    </>
     }
 }
 
